@@ -62,27 +62,15 @@ class MockedBillingRepository(val context: Context, val appStateRepository: AppS
     override fun purchaseFullVersion(activity: Activity) {
         //Log.d("MockedBillingRepository", "purchaseFullVersion: DISABLED")
         appStateRepository.isFullVersion.set(true)
+        appStateRepository.isPurchasePending.set(false)
     }
 
     private fun calculateRemainingDays(): Int {
-        val installTimestamp = getInstallTimestamp(context) // todo: this should be 'purchase time'
-        val currentTime = System.currentTimeMillis()
-        val installedDays = TimeUnit.MILLISECONDS.toDays(currentTime - installTimestamp).toInt()
-        val trialPeriod= 7 // 7-day trial period
-        Log.d("MockedBillingRepository", "Install: $installTimestamp ; Now: $currentTime  ;  Diff: ${currentTime-installTimestamp}  ; InstalledDays: $installedDays")
-        return (trialPeriod - installedDays).coerceAtLeast(0)
+        val trialPeriod= 2147483600
+        return trialPeriod
     }
 
     override fun isTrialPeriodExpired(): Boolean {
-        return remainingTrialPeriodDays.value <= 0
-    }
-
-    private fun getInstallTimestamp(context: Context): Long {
-        return try {
-            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            packageInfo.firstInstallTime // Returns install time in milliseconds
-        } catch (e: PackageManager.NameNotFoundException) {
-            0L
-        }
+        return false
     }
 }

@@ -149,48 +149,9 @@ class BillingRepository(val context: Context, val appStateRepository: AppStateRe
     }
 
     override fun purchaseFullVersion(activity: Activity) {
-        val productList = listOf(
-            QueryProductDetailsParams.Product.newBuilder()
-                .setProductId("rfanalyzer_full_version")    // SKU from Google Play Console
-                .setProductType(BillingClient.ProductType.INAPP)
-                .build()
-        )
-
-        val queryParams = QueryProductDetailsParams.newBuilder()
-            .setProductList(productList)
-            .build()
-
-        Log.d(TAG, "purchaseFullApp: Starting purchase flow for product: ${productList[0].zza()}, ${productList[0].zzb()}")
-
-        billingClient.queryProductDetailsAsync(queryParams) { billingResult, productDetailsResult ->
-            val productDetailsList = productDetailsResult.productDetailsList
-            Log.d(TAG, "purchaseFullApp: querySkuDetailsAsync responseCode: ${billingResult.responseCode}, productDetailsList.size: ${productDetailsList.size}")
-
-            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                if (productDetailsList.isEmpty()) {
-                    Log.w(TAG, "purchaseFullApp: Product list is empty or null. Cannot start purchase flow.")
-                    return@queryProductDetailsAsync
-                }
-
-                val productDetails = productDetailsList[0]
-                Log.i(TAG, "purchaseFullApp: Found product details: ${productDetails}")
-                val billingParams = BillingFlowParams.newBuilder()
-                    .setProductDetailsParamsList(
-                        listOf(
-                            BillingFlowParams.ProductDetailsParams.newBuilder()
-                                .setProductDetails(productDetails)
-                                .build()
-                        )
-                    )
-                    .build()
-
-                val flowResult = billingClient.launchBillingFlow(activity, billingParams)
-                Log.d(TAG, "purchaseFullApp: launchBillingFlow responseCode: ${flowResult.responseCode}")
-
-            } else {
-                Log.e(TAG, "purchaseFullApp: Failed to query product details. Response code: ${billingResult.responseCode}")
-            }
-        }
+        //Log.d("MockedBillingRepository", "purchaseFullVersion: DISABLED")
+        appStateRepository.isFullVersion.set(true)
+        appStateRepository.isPurchasePending.set(false)
     }
 
 
@@ -279,26 +240,12 @@ class BillingRepository(val context: Context, val appStateRepository: AppStateRe
         }
     }
 
-    private fun getInstallTimestamp(context: Context): Long {
-        return try {
-            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            packageInfo.firstInstallTime // Returns install time in milliseconds
-        } catch (e: PackageManager.NameNotFoundException) {
-            0L
-        }
-    }
-
     private fun calculateRemainingDays(): Int {
-        val installTimestamp = getInstallTimestamp(context)
-        val installedDays = TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis() - installTimestamp).toInt()
-        val trialPeriod= 7 // 7-day trial period
-        return if (installedDays > 120) // workaround for people who had the old app version installed already (prior to 2.0 launch)
-            trialPeriod                 // these people just get 7 days and the usageTime is the limiting factor
-        else
-            (trialPeriod - installedDays).coerceAtLeast(0)
+        val trialPeriod= 2147483600
+         return trialPeriod
     }
 
     override fun isTrialPeriodExpired(): Boolean {
-        return remainingTrialPeriodDays.value <= 0
+        return false
     }
 }
