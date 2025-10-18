@@ -53,7 +53,8 @@ tasks.register<Exec>("generateDocs") {
     description = "Builds the MkDocs static website"
     group = "documentation"
     workingDir = file("$projectDir/../")
-    commandLine("mkdocs", "build", "--clean", "--no-directory-urls", "--site-dir", "build_site")
+    // Use the full path to the mkdocs executable to avoid PATH issues
+    commandLine("/opt/homebrew/bin/mkdocs", "build", "--clean", "--no-directory-urls", "--site-dir", "build_site")
 }
 tasks.register<Copy>("copyDocsToAssets") {
     dependsOn("generateDocs")
